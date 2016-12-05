@@ -40,6 +40,9 @@ class Card:
 
 	# Returns string representations of all cards
 	@staticmethod
-	def get_all_cards():
+	def get_all_cards(with_jokers=True):
 
-		return [Card(card_val, suit).__repr__() for card_val in CardValue for suit in Suit]
+		deck = [Card(card_val, suit).__repr__() for card_val in CardValue for suit in Suit]
+		if with_jokers:
+			deck += ["red_joker", "black_joker"]
+		return deck

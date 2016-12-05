@@ -32,7 +32,7 @@ class Server(PodSixNet.Server.Server):
 	def call_bullshit(self, player_num, game_id):
 
 		game = [game for game in self.games if game_id == game.game_id][0]
-		winner, count = game.call_bullshit(player_num)
+		winner, count, satisfiers = game.call_bullshit(player_num)
 		game.last_winner = winner
 
 		game.player0.Send(
@@ -40,6 +40,8 @@ class Server(PodSixNet.Server.Server):
 				"action": "round_over",
 				"winner": winner,
 				"count": count,
+				"opponent_cards": game.player1_cards,
+				"satisfiers": satisfiers,
 			}
 		)
 		game.player1.Send(
@@ -47,6 +49,8 @@ class Server(PodSixNet.Server.Server):
 				"action": "round_over",
 				"winner": winner,
 				"count": count,
+				"opponent_cards": game.player0_cards,
+				"satisfiers": satisfiers,
 			}
 		)
 
@@ -60,6 +64,7 @@ class Server(PodSixNet.Server.Server):
 					"action": "startround",
 					"cards": game.player0_cards,
 					"turn": game.turn,
+					"opponent_count": game.player1_num_cards,
 				}
 			)
 		game.player1.Send(
@@ -67,6 +72,7 @@ class Server(PodSixNet.Server.Server):
 				"action": "startround",
 				"cards": game.player1_cards,
 				"turn": game.turn,
+				"opponent_count": game.player0_num_cards,
 			}
 		)
 
@@ -133,6 +139,7 @@ class Server(PodSixNet.Server.Server):
 					"player_num": 0, 
 					"game_id": self.queue.game_id,
 					"cards": self.queue.player0_cards,
+					"opponent_count": self.queue.player1_num_cards,
 				}
 			)
 			self.queue.player1.Send(
@@ -141,6 +148,7 @@ class Server(PodSixNet.Server.Server):
 					"player_num": 1, 
 					"game_id": self.queue.game_id,
 					"cards": self.queue.player1_cards,
+					"opponent_count": self.queue.player0_num_cards,
 				}
 			)
 			self.games.append(self.queue)
@@ -199,15 +207,36 @@ class SGame:
 		round_cards = [self.all_cards[ind] for ind in (self.player0_cards + self.player1_cards)]
 		count = 0
 		face_card_values = [11, 12, 13]
-		for card in round_cards:
+
+		satisfiers = [[], []]
+		for i, card in enumerate(round_cards):
 			if any(CardValue(card_val).name in card for card_val in face_card_values):
-				count += 1	
+				count += 1
+				if i < self.player0_num_cards:
+					satisfiers[0].append(i)
+				else:
+					satisfiers[1].append(i-self.player0_num_cards)
+			elif "joker" in card:
+				count -= 1 
+				if i < self.player0_num_cards:
+					satisfiers[0].append(i)
+				else:
+					satisfiers[1].append(i-self.player0_num_cards)
+
 			elif self.bet[1] == 1:
 				if CardValue(self.bet[1]).name in card:
 					count += 1
+					if i < self.player0_num_cards:
+						satisfiers[0].append(i)
+					else:
+						satisfiers[1].append(i-self.player0_num_cards)
 			else:
 				if str(self.bet[1]) in card:
 					count += 1
+					if i < self.player0_num_cards:
+						satisfiers[0].append(i)
+					else:
+						satisfiers[1].append(i-self.player0_num_cards)
 
 		if count < self.bet[0]:
 			winner = player_num
@@ -224,7 +253,7 @@ class SGame:
 				self.game_over()
 
 		self.bet = None
-		return winner, count
+		return winner, count, satisfiers
 
 print "STARTING SERVER ON LOCALHOST"
 # try:

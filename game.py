@@ -25,21 +25,41 @@ class Game(ConnectionListener):
 		self.player_num = data["player_num"]
 		self.game_id = data["game_id"]
 		self.cards = data["cards"]
+		self.opponent_count = data["opponent_count"]
 
 	def Network_startround(self, data):
 
 		self.running = True
 		self.cards = data["cards"]
 		self.turn = 1 if data["turn"] == self.player_num else 0
+		self.opponent_count = data["opponent_count"]
 
 	def Network_round_over(self, data):
 
 		self.game_bet = None
+
+		self.update(data["satisfiers"])
+
 		myfont = pygame.font.SysFont(None, 32)
 		count_label = myfont.render("There were " + str(data["count"]), 1, (255,255,255))
-		self.screen.blit(count_label, (175, 250))
+		self.screen.blit(count_label, (125, 175))
+
+		width = 389
+		width_needed = (self.opponent_count - 1) * 20 + 100
+		x = (width - width_needed)/float(2)
+
+		y = 0
+		for i, card_ind in enumerate(data["opponent_cards"]):
+			card_img = self.card_imgs[card_ind]
+			if i in data["satisfiers"][(self.player_num + 1) % 2]:
+				self.screen.blit(card_img, [x, y + 20])
+			else:
+				self.screen.blit(card_img, [x, y])
+
+			x += 20
+
 	  	pygame.display.flip()
-	  	sleep(3)
+	  	sleep(5)
 		
 	def Network_bet_placed(self, data):
 
@@ -62,6 +82,8 @@ class Game(ConnectionListener):
 			card_img = pygame.image.load("res/" + card + ".png")
 			card_img = pygame.transform.scale(card_img, (100, 144))
 			self.card_imgs.append(card_img)
+		self.card_back = pygame.image.load("res/back.jpg")
+		self.card_back = pygame.transform.scale(self.card_back, (100, 144))
 
 		self.redindicator = pygame.image.load("res/redindicator.png")
 		self.greenindicator = pygame.image.load("res/greenindicator.png")
@@ -70,14 +92,32 @@ class Game(ConnectionListener):
 		self.score_panel = pygame.image.load("res/score_panel.png")
 		self.bg = pygame.image.load("res/bg.jpg")
 
-	def draw_cards(self):
+	def draw_cards(self, satisfiers=None):
 
 		self.screen.blit(self.bg, [0, 0])		
-		x, y = 100, 100
+		
+		width = 389
+		width_needed = (len(self.cards) - 1) * 20 + 100
 
-		for card_ind in self.cards:
-			self.screen.blit(self.card_imgs[card_ind], [x, y])
+		x = (width - width_needed)/float(2)
+		y = 240
+
+		for i, card_ind in enumerate(self.cards):
+			if satisfiers is not None and i in satisfiers[self.player_num]:
+				self.screen.blit(self.card_imgs[card_ind], [x, y-20])
+			else:
+				self.screen.blit(self.card_imgs[card_ind], [x, y])
+
 			x += 20
+
+		if satisfiers is None:
+			width_needed = (self.opponent_count - 1) * 20 + 100
+			x = (width + width_needed)/float(2) - 100
+
+			y = -80
+			for i in range(self.opponent_count):
+				self.screen.blit(self.card_back, [x, y])			
+				x -= 20
 
 	def draw_hud(self):
 		
@@ -167,7 +207,7 @@ class Game(ConnectionListener):
 		else:
 			self.turn = False
 
-	def update(self):
+	def update(self, satisfiers=None):
 
 		connection.Pump()
 		self.Pump()
@@ -177,7 +217,7 @@ class Game(ConnectionListener):
 		# Clear screen
 		self.screen.fill(0)
 
-		self.draw_cards()
+		self.draw_cards(satisfiers)
 		self.draw_hud()
 
 		for event in pygame.event.get():
