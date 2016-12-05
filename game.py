@@ -1,7 +1,7 @@
 # https://www.raywenderlich.com/38732/multiplayer-game-programming-for-teens-with-python
 import pygame
 import pygbutton
-from card import Card
+from card import Card, CardValue
 from bet import Bet
 import random
 from time import sleep
@@ -36,13 +36,18 @@ class Game(ConnectionListener):
 
 	def Network_round_over(self, data):
 
-		self.game_bet = None
 
 		self.update(data["satisfiers"])
 
 		myfont = pygame.font.SysFont(None, 32)
-		count_label = myfont.render("There were " + str(data["count"]), 1, (255,255,255))
-		self.screen.blit(count_label, (125, 175))
+		count_label = myfont.render((
+			("There were " if data["count"] != 1 else "There was ") + 
+			str(data["count"]) + 
+			" " + 
+			(CardValue(self.game_bet.val).name) + 
+			("s" if data["count"] != 1 else "")
+		), 1, (255,255,255))
+		self.screen.blit(count_label, (95, 175))
 
 		width = 389
 		width_needed = (self.opponent_count - 1) * 20 + 100
@@ -59,6 +64,7 @@ class Game(ConnectionListener):
 			x += 20
 
 	  	pygame.display.flip()
+		self.game_bet = None
 	  	sleep(5)
 		
 	def Network_bet_placed(self, data):
