@@ -21,8 +21,30 @@ class ClientChannel(PodSixNet.Channel.Channel):
 			self._server.end_game(data["game_id"], winner)
 		else:
 			self._server.start_round(data["game_id"])
+
+	def Network_close(self, data):
+
+		self._server.close(data["game_id"], data["player_num"])
  
 class Server(PodSixNet.Server.Server):
+
+	def close(self, game_id, player_num):
+	    try:
+			game = [game for game in self.games if game_id == game.game_id][0]
+			game.player0.Send(
+				{
+					"action":"close",
+					"player_num": player_num,
+				}
+			)
+			game.player1.Send(
+				{
+					"action":"close",
+					"player_num": player_num,
+				}
+			)
+	    except:
+	        pass
 
 	def game_over(self, game_id):
 

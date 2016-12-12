@@ -19,6 +19,10 @@ class Game(ConnectionListener):
 					  exit()
 			  pygame.display.flip()
 
+	def Network_close(self, data):
+	    print("Player " + str(data["player_num"]) + " disconnected!")
+	    exit()
+
 	def Network_startgame(self, data):
 
 		self.running = True
@@ -35,7 +39,6 @@ class Game(ConnectionListener):
 		self.opponent_count = data["opponent_count"]
 
 	def Network_round_over(self, data):
-
 
 		self.update(data["satisfiers"])
 
@@ -58,6 +61,10 @@ class Game(ConnectionListener):
 			card_img = self.card_imgs[card_ind]
 			if i in data["satisfiers"][(self.player_num + 1) % 2]:
 				self.screen.blit(card_img, [x, y + 20])
+				if card_ind in [52, 53]:
+					self.screen.blit(self.card_red_overlay, [x, y + 20])
+				else:	
+					self.screen.blit(self.card_green_overlay, [x, y + 20])
 			else:
 				self.screen.blit(card_img, [x, y])
 
@@ -97,6 +104,8 @@ class Game(ConnectionListener):
 		self.gameover = pygame.image.load("res/gameover.png")
 		self.score_panel = pygame.image.load("res/score_panel.png")
 		self.bg = pygame.image.load("res/bg.jpg")
+		self.card_green_overlay = pygame.image.load("res/card_green_overlay.png")
+		self.card_red_overlay = pygame.image.load("res/card_red_overlay.png")
 
 	def draw_cards(self, satisfiers=None):
 
@@ -111,6 +120,10 @@ class Game(ConnectionListener):
 		for i, card_ind in enumerate(self.cards):
 			if satisfiers is not None and i in satisfiers[self.player_num]:
 				self.screen.blit(self.card_imgs[card_ind], [x, y-20])
+				if card_ind in [52, 53]:
+					self.screen.blit(self.card_red_overlay, [x, y - 20])
+				else:
+					self.screen.blit(self.card_green_overlay, [x, y - 20])
 			else:
 				self.screen.blit(self.card_imgs[card_ind], [x, y])
 
@@ -229,7 +242,13 @@ class Game(ConnectionListener):
 		for event in pygame.event.get():
 
 			if event.type == pygame.QUIT:
-				exit()
+				self.Send(
+					{
+						"action": "close",
+						"game_id": self.game_id,
+						"player_num": self.player_num,
+					}
+				)
 
 			if 'click' in self.bs_button.handleEvent(event) and self.game_bet is not None:
 				self.Send(
