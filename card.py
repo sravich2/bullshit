@@ -22,6 +22,7 @@ class CardValue(Enum):
 	jack = 11
 	queen = 12
 	king = 13
+	joker = 14
 
 # TODO: Joker
 class Card:
@@ -33,8 +34,11 @@ class Card:
 
 	def __repr__(self):
 
-		if self.val.value <= 10 and self.val.value >= 2:
+		if  2 <= self.val.value <= 10:
 			return str(self.val.value) + "_of_" + str(self.suit.name)
+		elif self.val == CardValue.joker:
+			joker_color = 'black' if self.suit == Suit.spades else 'red'
+			return "{0}_joker".format(joker_color)
 
 		return str(self.val.name) + "_of_" + str(self.suit.name)
 
@@ -42,7 +46,9 @@ class Card:
 	@staticmethod
 	def get_all_cards(with_jokers=True):
 
-		deck = [Card(card_val, suit).__repr__() for card_val in CardValue for suit in Suit]
+		deck = [Card(card_val, suit) for card_val in CardValue for suit in Suit if card_val != CardValue.joker]
 		if with_jokers:
-			deck += ["red_joker", "black_joker"]
+			joker_cards = Card(CardValue.joker, Suit.spades), Card(CardValue.joker, Suit.diamonds)
+			deck += joker_cards
 		return deck
+
