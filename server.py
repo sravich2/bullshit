@@ -22,7 +22,7 @@ class ClientChannel(PodSixNet.Channel.Channel):
 	def Network_bullshit(self, data):
 
 		self._server.call_bullshit(data["player_num"], data["game_id"])
-		winner = self._server.game_over(data["game_id"]) 
+		winner = self._server.get_winner(data["game_id"]) 
 		if winner is None:
 			self._server.start_round(data["game_id"])
 		else:
@@ -129,10 +129,10 @@ class Server(PodSixNet.Server.Server):
 		}
 		self._msg_all_players(game, close_msg)
 
-	def game_over(self, game_id):
+	def get_winner(self, game_id):
 
 		game = self.games[game_id]
-		return game.game_over()
+		return game.get_winner()
 
 	def _msg_all_players(self, game, msg):
 
@@ -205,7 +205,7 @@ class SGame:
 		self.bet = None
 		return round_winner, count, satisfiers
 
-	def game_over(self):
+	def get_winner(self):
 
 		try:
 			return _other_player(self.player_num_cards.index(0))
@@ -219,16 +219,16 @@ def _other_player(player_num):
 host, port = "localhost", "8000"
 try:
 	opts, args = getopt.getopt(sys.argv[1:], "h:")
+	for opt, arg in opts:
+		if opt == '-h':
+			host, port = arg.split(":") 
+
+	print "STARTING SERVER ON {}:{}".format(host, port)
+	server = Server(localaddr=(host, int(port)))
+	while True:
+		server.Pump()
+		sleep(0.01)
+
 except:
 	print("Usage: python server.py -h [host]:[port]")
 	exit()
-	
-for opt, arg in opts:
-	if opt == '-h':
-		host, port = arg.split(":") 
-
-print "STARTING SERVER ON {}:{}".format(host, port)
-server = Server(localaddr=(host, int(port)))
-while True:
-	server.Pump()
-	sleep(0.01)
