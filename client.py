@@ -38,7 +38,7 @@ class Game(ConnectionListener):
 			(CardValue(self.game_bet.val).name) + 
 			("s" if data["count"] != 1 else "")
 		), 1, (255,255,255))
-		self.screen.blit(count_label, (95, 175))
+		self.screen.blit(count_label, (self.height/2 - 100, self.width - 150))
 
 		self.game_bet = None
 	  	sleep(5)
@@ -222,7 +222,7 @@ class Game(ConnectionListener):
 					self.screen.blit(self.card_imgs[card_ind], [x, y + animate_frame])
 					self.screen.blit(overlay, [x, y + animate_frame])
 				else:
-					self.screen.blit(card_img, [x, y])
+					self.screen.blit(self.card_imgs[card_ind], [x, y])
 			else:
 				self.screen.blit(self.card_back, [x, y])			
 			x += 20
