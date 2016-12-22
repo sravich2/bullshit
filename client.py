@@ -27,8 +27,9 @@ class Game(ConnectionListener):
 
 	def Network_round_over(self, data):
 
-		# for k in range(20, 21):	
-		self.redraw_screen(data["satisfiers"], data["opponent_cards"])
+		for frame in range(1, 31):
+			self.redraw_screen(data["satisfiers"], data["opponent_cards"], frame)
+
 		myfont = pygame.font.SysFont(None, 32)
 		count_label = myfont.render((
 			("There were " if data["count"] != 1 else "There was ") + 
@@ -39,8 +40,6 @@ class Game(ConnectionListener):
 		), 1, (255,255,255))
 		self.screen.blit(count_label, (95, 175))
 
-	  	pygame.display.flip()
-	  	sleep(0.01)
 		self.game_bet = None
 	  	sleep(5)
 		
@@ -183,59 +182,50 @@ class Game(ConnectionListener):
 
 		pygame.display.flip()
 
-	def redraw_screen(self, satisfiers=None, opponent_cards=None):
+	def redraw_screen(self, satisfiers=None, opponent_cards=None, animate_frame=None):
 
 		if not self.game_over:
 			self.screen.fill(0)
-			self.draw_cards(satisfiers, opponent_cards)
+			self.draw_cards(satisfiers, opponent_cards, animate_frame)
 			self.draw_hud()
+			pygame.display.flip()
 
-	def draw_cards(self, satisfiers=None, opponent_cards=None):
+	def draw_cards(self, satisfiers=None, opponent_cards=None, animate_frame=None):
 
 		self.bg = pygame.transform.scale(self.bg, (self.width, self.height))
 		self.screen.blit(self.bg, [0, 0])	
 
+		# Draw player's cards
 		width_needed = (len(self.cards) - 1) * 20 + 100
-
 		x = (self.width - width_needed)/float(2)
 		y = self.height - 274
 
 		for i, card_ind in enumerate(self.cards):
 			if satisfiers is not None and i in satisfiers[self.player_num]:
 				overlay = self.card_red_overlay if card_ind in [52, 53] else self.card_green_overlay
-				self.screen.blit(self.card_imgs[card_ind], [x, y - 20])
-				self.screen.blit(overlay, [x, y - 20])
+				self.screen.blit(self.card_imgs[card_ind], [x, y - animate_frame])
+				self.screen.blit(overlay, [x, y - animate_frame])
 			else:
 				self.screen.blit(self.card_imgs[card_ind], [x, y])
-
 			x += 20
 
-		if satisfiers is None:
-			width_needed = (self.opponent_count - 1) * 20 + 100
-			x = (self.width + width_needed)/float(2) - 100
+		# Draw opponent's cards
+		width_needed = (self.opponent_count - 1) * 20 + 100
+		x = (self.width - width_needed)/float(2)
+		y = 20
 
-			y = 20
-			for i in range(self.opponent_count):
-				self.screen.blit(self.card_back, [x, y])			
-				x -= 20
-
-		else:
-			width_needed = (self.opponent_count - 1) * 20 + 100
-			y = 30
-			x = (self.width - width_needed)/float(2)
-
-			for i, card_ind in enumerate(opponent_cards):
-				card_img = self.card_imgs[card_ind]
+		for i in range(self.opponent_count):
+			if satisfiers:
+				card_ind = opponent_cards[i]
 				if i in satisfiers[(self.player_num + 1) % 2]:
-					self.screen.blit(card_img, [x, y + 20])
-					if card_ind in [52, 53]:
-						self.screen.blit(self.card_red_overlay, [x, y + 20])
-					else:	
-						self.screen.blit(self.card_green_overlay, [x, y + 20])
+					overlay = self.card_red_overlay if card_ind in [52, 53] else self.card_green_overlay
+					self.screen.blit(self.card_imgs[card_ind], [x, y + animate_frame])
+					self.screen.blit(overlay, [x, y + animate_frame])
 				else:
 					self.screen.blit(card_img, [x, y])
-
-				x += 20
+			else:
+				self.screen.blit(self.card_back, [x, y])			
+			x += 20
 
 	def draw_hud(self):
 
