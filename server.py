@@ -229,6 +229,9 @@ try:
 		server.Pump()
 		sleep(0.01)
 
-except:
+except ValueError:
 	print("Usage: python server.py -h [host]:[port]")
+
+except Exception as e:
+	print(e)
 	exit()
