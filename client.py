@@ -11,6 +11,7 @@ import pygbutton
 from bet import Bet
 from card import Card, CardValue
 
+
 class Game(ConnectionListener):
 
 	def Network_startgame(self, data):
@@ -38,7 +39,8 @@ class Game(ConnectionListener):
 			(CardValue(self.game_bet.val).name) + 
 			("s" if data["count"] != 1 else "")
 		), 1, (255,255,255))
-		self.screen.blit(count_label, (self.height/2 - 100, self.width - 150))
+		self.screen.blit(count_label, (self.width/2 - 100, self.height/2 - 50))
+		pygame.display.flip()
 
 		self.game_bet = None
 	  	sleep(5)

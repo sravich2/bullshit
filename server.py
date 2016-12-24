@@ -143,7 +143,7 @@ class Server(PodSixNet.Server.Server):
 class SGame:
 
 	MAX_PLAYERS = 2
-	NUM_CARDS = 2
+	NUM_CARDS = 5
 
 	def __init__(self, player0, currentIndex):
 
