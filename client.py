@@ -150,9 +150,10 @@ class Game(ConnectionListener):
 				})
 
 			elif 'click' in self.count_inc_button.handleEvent(event) and self.turn:
-				self.count_bet += 1
+				if self.count_bet + 1 <= self.opponent_count + len(self.cards):
+					self.count_bet += 1
 			elif 'click' in self.count_dec_button.handleEvent(event) and self.turn:
-				if self.count_bet - 1 >= 0:
+				if 0 <= self.count_bet - 1:
 					self.count_bet -= 1
 
 			elif 'click' in self.val_inc_button.handleEvent(event) and self.turn:
