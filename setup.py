@@ -15,4 +15,5 @@ setup(
           'enum34'
       ],
       zip_safe=False,
+      include_package_data=True,
 )
