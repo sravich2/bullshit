@@ -204,7 +204,7 @@ class Game(ConnectionListener):
 		y = self.height - 274
 
 		for i, card_ind in enumerate(self.cards):
-			if satisfiers is not None and i in satisfiers[self.player_num]:
+			if satisfiers and i in satisfiers[self.player_num]:
 				overlay = self.card_red_overlay if card_ind in [52, 53] else self.card_green_overlay
 				self.screen.blit(self.card_imgs[card_ind], [x, y - animate_frame])
 				self.screen.blit(overlay, [x, y - animate_frame])
