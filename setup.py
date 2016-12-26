@@ -11,7 +11,8 @@ setup(
       packages=['bullshit'],
       install_requires=[
           'pygame',
-          'pygbutton'
+          'pygbutton',
+          'enum34'
       ],
       zip_safe=False,
 )
